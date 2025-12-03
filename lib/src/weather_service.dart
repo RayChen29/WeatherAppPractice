@@ -155,13 +155,7 @@ for (int i = 0; i < hourlyTimes.length; i++) {
   indexByDate.putIfAbsent(key, () => []);
   indexByDate[key]!.add(i);
 }
-//format hours into AM/PM
-// String formatHour(DateTime time) {
-//   final hour = time.hour;
-//   final ampm = hour >= 12 ? 'PM' : 'AM';
-//   final displayHour = hour % 12 == 0 ? 12 : hour % 12;
-//   return '$displayHour $ampm';
-// }
+
 
 // Sort date keys and take the first 7 (today -> +6 days)
 final sortedKeys = indexByDate.keys.toList()
@@ -192,9 +186,7 @@ String monthDayLabel(DateTime d) => '${d.month.toString().padLeft(2, '0')}/${d.d
 final selectedTemps = (tempsByDay.isNotEmpty && selectedDayIndex < tempsByDay.length)
     ? tempsByDay[selectedDayIndex]
     : hourlyTemps;
-// final selectedTimes = (timesByDay.isNotEmpty && selectedDayIndex < timesByDay.length)
-//     ? timesByDay[selectedDayIndex]
-//     : hourlyTimes;
+
 
 // Use the same currentIndex calculation but relative to the selectedTimes if needed.
 // We already computed 'currentIndex' relative to the full hourlyTimes earlier,
@@ -214,16 +206,13 @@ return Column(
     // keep the existing WeatherCard to show current temp & summary (we removed chart from inside it)
     WeatherCard(
       currentTemperature: currentTemp,
-      hourlyTemperatures: selectedTemps, // keep for compatibility if WeatherCard still expects it
+      hourlyTemperatures: selectedTemps, // keep for compatibility in case WeatherCard still expects it
       currentIndex: selectedCurrentIndex,
     ),
 
     const SizedBox(height: 48),
 
     // Day selector: horizontal scroll of up to 7 days
-
-    // const SizedBox(height: 24),
-
 
     // Chart for the selected day
     SizedBox(
@@ -298,48 +287,7 @@ return Column(
     );
   }
 }
-//og
-/*class WeatherCard extends StatelessWidget {
-  final double currentTemperature;
-  final List<double> hourlyTemperatures;
-
-  const WeatherCard({super.key, required this.currentTemperature, required this.hourlyTemperatures});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Current Temperature: ${currentTemperature.toStringAsFixed(1)}°F',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16.0),
-            Text(
-              'Temperature Throughout the Day',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16.0),
-            SizedBox(
-              height: 200,
-              child: HourlyLineChart(
-                values: hourlyTemperatures,
-                currentIndex: currentIndex,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-*/
-
-//cpt 
+// A simple card showing current temperature and a brief summary.
 class WeatherCard extends StatelessWidget {
   final double currentTemperature;
   final List<double> hourlyTemperatures;
@@ -436,137 +384,6 @@ class _HourlyLineChartState extends State<HourlyLineChart> {
   }
 }
 
-// class _LineChartPainter extends CustomPainter {
-//   final List<double> values;
-//   final Color lineColor;
-
-//   _LineChartPainter(this.values, this.lineColor);
-//cpt version
-/*class _LineChartPainter extends CustomPainter {
-  final List<double> values;
-  final Color lineColor;
-  final int currentIndex;
-  final List<DateTime> hourlyTimes;
-
-  _LineChartPainter(this.values, this.lineColor, this.currentIndex,this.hourlyTimes,);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (values.isEmpty) return;
-
-    const double paddingTop = 8.0;
-    const double paddingBottom = 16.0;
-    const double paddingLeft = 32.0;
-    final double chartHeight = size.height - paddingTop - paddingBottom;
-    final double chartWidth = size.width - paddingLeft - 8.0;
-    
-    final int n = values.length;
-    final double denom = (n > 1) ? (n - 1).toDouble() : 1.0;
-
-    double minVal = values.reduce((a, b) => a < b ? a : b);
-    double maxVal = values.reduce((a, b) => a > b ? a : b);
-    double range = (maxVal - minVal).abs();
-    if (range == 0) range = 1;
-
-    // Use withAlpha to avoid the withOpacity deprecation warning:
-    final Paint gridPaint = Paint()
-      ..color = Colors.grey.withAlpha((0.2 * 255).round())
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    // Draw min/max text on left
-    final TextPainter minTp = TextPainter(
-      text: TextSpan(text: minVal.toStringAsFixed(0), style: const TextStyle(color: Colors.black, fontSize: 12)),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    minTp.paint(canvas, Offset(4, paddingTop + chartHeight - minTp.height / 2));
-
-    final TextPainter maxTp = TextPainter(
-      text: TextSpan(text: maxVal.toStringAsFixed(0), style: const TextStyle(color: Colors.black, fontSize: 12)),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    maxTp.paint(canvas, Offset(4, paddingTop - maxTp.height / 2));
-
-    // Draw grid lines: top and bottom
-    canvas.drawLine(Offset(paddingLeft, paddingTop), Offset(paddingLeft + chartWidth, paddingTop), gridPaint);
-    canvas.drawLine(Offset(paddingLeft, paddingTop + chartHeight), Offset(paddingLeft + chartWidth, paddingTop + chartHeight), gridPaint);
-    //cpt
-    // Draw hour labels along the x-axis
-  // final TextStyle hourStyle = const TextStyle(color: Colors.black, fontSize: 10);
-      for (int i = 0; i < n; i++) {
-      // Only label every 3 hours
-      if (i % 3 != 0) continue;
-
-      final double x = paddingLeft + (chartWidth) * (i / denom);
-      final String label = formatHour(hourlyTimes[i]); // hourlyTimes from WeatherService
-
-      final TextPainter tp = TextPainter(
-        text: TextSpan(text: label, style: const TextStyle(color: Colors.black, fontSize: 10)),
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      )..layout();
-
-      tp.paint(canvas, Offset(x - tp.width / 2, paddingTop + chartHeight + 4));
-    }
-
-    // Build the path
-    final path = Path();
-    final pointPaint = Paint()
-      ..color = lineColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-
-    final pointFillPaint = Paint()
-      ..color = lineColor
-      ..style = PaintingStyle.fill;
-
-
-    for (int i = 0; i < n; i++) {
-      final double x = paddingLeft + (chartWidth) * (i / denom);
-      final double normalized = (values[i] - minVal) / range;
-      final double y = paddingTop + (chartHeight - normalized * chartHeight);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-
-    // Draw the line
-    canvas.drawPath(path, pointPaint);
-
-    // Draw points
-    for (int i = 0; i < n; i++) {
-      final double x = paddingLeft + (chartWidth) * (i / denom);
-      final double normalized = (values[i] - minVal) / range;
-      final double y = paddingTop + (chartHeight - normalized * chartHeight);
-      canvas.drawCircle(Offset(x, y), 3.0, pointFillPaint);
-    }
-
-    // Draw special marker at currentIndex
-    if (currentIndex >= 0 && currentIndex < values.length) {
-      final double x = paddingLeft + (chartWidth) * (currentIndex / denom);
-      final double norm = (values[currentIndex] - minVal) / range;
-      final double y = paddingTop + (chartHeight - norm * chartHeight);
-
-      final Paint highlightPaint = Paint()
-        ..color = Colors.red
-        ..style = PaintingStyle.fill;
-
-      // Draw a slightly larger point
-      canvas.drawCircle(Offset(x, y), 5.0, highlightPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _LineChartPainter oldDelegate) {
-    return oldDelegate.values != values ||
-           oldDelegate.lineColor != lineColor ||
-           oldDelegate.currentIndex != currentIndex;
-  }
-}
-*/
 class _LineChartPainter extends CustomPainter {
   final List<double> values;
   final Color lineColor;

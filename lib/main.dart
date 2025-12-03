@@ -1,10 +1,5 @@
-// import 'dart:nativewrappers/_internal/vm/lib/ffi_native_type_patch.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; //allows digit-only input
-// http and dart:convert were removed because they're not used yet
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'dart:async';
@@ -205,10 +200,6 @@ class _MyAppState extends State<MyApp> {
       );
       return;
     }
-
-  // Example: store the Future (caller can await it) or await here directly
-  // Future<Position?> posLatLon = _checkLocationService();
-  // You can now await posLatLon in an async caller or use .then/.catchError
 
   }
   //So does _checkLocationService become the variable to use when referring to the data returned by Geolocator.getCurrentPosition?
